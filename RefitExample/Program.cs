@@ -1,4 +1,7 @@
 
+using Microsoft.Extensions.Options;
+using RefitExample.Services;
+
 namespace RefitExample
 {
     public class Program
@@ -16,6 +19,14 @@ namespace RefitExample
 
             builder.Services.AddOptions<GithubSettings>().BindConfiguration(GithubSettings.GithubConfiguration).ValidateDataAnnotations().ValidateOnStart();
 
+            builder.Services.AddHttpClient<GithubHttpService>((sp, httpClient) => {
+                var githubSettings = sp.GetRequiredService<IOptions<GithubSettings>>().Value;
+                
+                httpClient.BaseAddress = new Uri(githubSettings.BaseUrl);
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {githubSettings.AccessToken}");
+                httpClient.DefaultRequestHeaders.Add("User-Agent",githubSettings.UserAgent);
+            });
+
 
             var app = builder.Build();
 
@@ -25,6 +36,9 @@ namespace RefitExample
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.MapGet("api/users/{username}", async (string username,GithubHttpService githubHttpService) => Results.Ok(await githubHttpService.GetUserByUsernameAsync(username)));
+           
 
             app.UseHttpsRedirection();
 
