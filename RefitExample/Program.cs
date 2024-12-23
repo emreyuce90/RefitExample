@@ -14,6 +14,9 @@ namespace RefitExample
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddOptions<GithubSettings>().BindConfiguration(GithubSettings.GithubConfiguration).ValidateDataAnnotations().ValidateOnStart();
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
